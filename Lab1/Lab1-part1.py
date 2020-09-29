@@ -19,12 +19,6 @@ test_url = "http://s3.amazonaws.com/assets.datacamp.com/course/Kaggle/test.csv"
 
 test = pd.read_csv(test_url)
 
-
-# for dirname, _, filenames in os.walk('/data'):
-#     for filename in filenames:
-#         print(os.path.join(dirname, filename))
-
-
 train = train.drop(['Name','Ticket','Cabin','Embarked'],axis = 1)
 
 test = test.drop(['Name','Ticket','Cabin','Embarked'],axis = 1)
@@ -48,7 +42,7 @@ kmeans = KMeans(n_clusters=2)
 kmeans.fit(X_scaled)
 KMeans(algorithm='auto', copy_x=True, init='k-means++', max_iter=300,
     n_clusters=2, n_init=10, n_jobs=1, precompute_distances='auto',
-    random_state=None, tol=0.0001, verbose=0)
+    random_state=None, tol=0.001, verbose=0)
 
 correct = 0
 for i in range(len(X)):
@@ -57,6 +51,7 @@ for i in range(len(X)):
     prediction = kmeans.predict(predict_me)
     if prediction[0] == y[i]:
         correct += 1
+
 print(correct/len(X))
 
 # print("***** Train_Set *****")
