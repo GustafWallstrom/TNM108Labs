@@ -8,3 +8,4 @@ from sklearn.datasets import make_blobs
 
 X, y = make_blobs(100, 2, centers=2, random_state=2, cluster_std=1.5)
 plt.scatter(X[:, 0], X[:, 1], c=y, s=50, cmap='RdBu')
+plt.show()
