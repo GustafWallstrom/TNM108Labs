@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import random
 from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import cross_val_predict
+from sklearn.model_selection import cross_val_predict, KFold
 from sklearn import svm
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
@@ -16,9 +16,10 @@ from sklearn.datasets import load_boston
 
 boston = load_boston()
 X=boston.data
-random.shuffle(X)
+cv = KFold(n_splits=10, shuffle=True)
+#random.shuffle(X)
 Y=boston.target
-cv = 10
+#cv = 10
 
 print('\nlinear regression')
 lin = LinearRegression()
