@@ -34,3 +34,18 @@ print(metrics.classification_report(y_test, predicted, target_names=movie.target
 # Confusion matrix
 print(metrics.confusion_matrix(y_test, predicted))
 
+
+# PARAM TUNING USING GRID SEARCH
+
+from sklearn.model_selection import GridSearchCV
+parameters = {
+    'vect_ngram_range': [(1, 1), (1, 2)],
+    'tfidt_use_idf': (True, False),
+    'clf_alpha': (1e-2, 1e-3),
+}
+
+
+gs_clf = GridSearchCV(text_clf, parameters, cv=5, iid=False, n_jobs=-1)
+gs_clf = gs_clf.fit(docs_train[:20], y_train[:20])
+
+#print(movie.target_names[gs_clf.predict(['two'])[0]])
