@@ -2,50 +2,88 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
-
-text_clf = Pipeline([
-    ('vect',CountVectorizer()),
-    ('tfidf',TfidfTransformer()),
-    ('clf',MultinomialNB()),
-])
-
+import numpy as np
+from sklearn.linear_model import SGDClassifier
+from sklearn import metrics
+from sklearn.model_selection import GridSearchCV
 import sklearn
 from sklearn.datasets import load_files
+from sklearn.model_selection import train_test_split
+
+
+
 
 moviedir = '/Users/marcus/Documents/TNM108/TNM108Labs/Lab4/movie_reviews'
-
-# loading all files.
+# loading all files. 
 movie = load_files(moviedir, shuffle=True)
 
+len(movie.data)
+
+# target names ("classes") are automatically generated from subfolder names
+movie.target_names
+
+# First file seems to be about a Schwarzenegger movie. 
+movie.data[0][:500]
+
+# first file is in "neg" folder
+movie.filenames[0]
+
+# first file is a negative review and is mapped to 0 index 'neg' in target_names
+movie.target[0]
+
 # Split data into training and test sets
-from sklearn.model_selection import train_test_split
-docs_train, docs_test, y_train, y_test = train_test_split(movie.data, movie.target, test_size = 0.20, random_state = 12)
+#movie_train, movie_test = train_test_split(movie, test_size = 0.20, random_state = 12)
+movie_data, movie_test, y_train, y_test = train_test_split(movie.data, movie.target,
+                                                           test_size = 0.20, random_state = 12)
 
-text_clf.fit(docs_train, y_train)
+# training SVM classifier
 
-import numpy as np
+text_clf = Pipeline([
+ ('vect', CountVectorizer()),
+ ('tfidf', TfidfTransformer()),
+ ('clf', SGDClassifier(loss='hinge', penalty='l2',alpha=1e-3, random_state=42, max_iter=5, tol=None)),
+])
+
+text_clf.fit(movie_data, y_train)
+
+docs_test = movie_test
 predicted = text_clf.predict(docs_test)
-print("multinomialBC accuracy: ", np.mean(predicted == y_test))
+print('SGDClassifier accuracy: ' + str(np.mean(predicted == y_test)))
 
-from sklearn import metrics
-# Additional information
+print("\nAdditional information")
 print(metrics.classification_report(y_test, predicted, target_names=movie.target_names))
 
-# Confusion matrix
+print("\nConfusion matrix:")
 print(metrics.confusion_matrix(y_test, predicted))
 
-
-# PARAM TUNING USING GRID SEARCH
-
-from sklearn.model_selection import GridSearchCV
 parameters = {
-    'vect_ngram_range': [(1, 1), (1, 2)],
-    'tfidt_use_idf': (True, False),
-    'clf_alpha': (1e-2, 1e-3),
+ 'vect__ngram_range': [(1, 1), (1, 2)],
+ 'tfidf__use_idf': (True, False),
+ 'clf__alpha': (1e-2, 1e-3),
 }
 
-
 gs_clf = GridSearchCV(text_clf, parameters, cv=5, iid=False, n_jobs=-1)
-gs_clf = gs_clf.fit(docs_train[:20], y_train[:20])
 
-#print(movie.target_names[gs_clf.predict(['two'])[0]])
+gs_clf = gs_clf.fit(movie_data, y_train)
+
+# very short and fake movie reviews
+reviews_new = ['All the actors in the movie did a fantastic job making it the best movie I have ever seen',
+               'Ryan Reynolds movie Green Lantern was a war crime against the film industry',
+               'Fantastic movie!',
+               'I did not find the movie funny but it had its moments and overall I am satisfied!',
+               'I cannot recommend this movie']
+
+
+print("Best score: " + str(gs_clf.best_score_))
+
+print("\nParameters:")
+for param_name in sorted(parameters.keys()):
+ print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+
+
+pred = gs_clf.predict(reviews_new)
+
+print("\n Self-made movie reviews and their classification:")
+# print out results
+for review, category in zip(reviews_new, pred):
+    print('%r => %s' % (review, movie.target_names[category]))
